@@ -104,6 +104,14 @@ jobs:
         shell: bash
         run: NODE_OPTIONS='--max_old_space_size=6144' npm run package:windows:unpacked -w insomnia
 
+      # wraps the Insomnia.exe PE with another PE that will bootstrap particular security
+      # features added to Windows 8 in order to stopgap CVE-2025-1353
+      - name: Compile secure wrapper (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: ./build-secure-wrapper.sh
+
+
       - name: Move .dll and .exe files to /tosign (PowerShell)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -116,7 +124,7 @@ jobs:
       # signs unpacked electron-builder contents, in this case only the .exe
       - name: Code-sign unpacked .exe (Windows only)
         if: runner.os == 'Windows'
-        uses: sslcom/esigner-codesign@develop
+        uses: sslcom/esigner-codesign@v1.3.1
         with:
           command: batch_sign
           username: ${{secrets.ES_USERNAME}}
