@@ -1,4 +1,8 @@
+
+set -e
+
 VERSION=$(jq .version ./packages/insomnia/package.json -rj)
+echo "Starting Insomnia secure wrapper build for version $VERSION..."
 MAJOR=$(echo $VERSION | cut -d '.' -f 1)
 MINOR=$(echo $VERSION | cut -d '.' -f 2)
 PATCH=$(echo $VERSION | cut -d '.' -f 3 | cut -d '-' -f 1)
@@ -11,15 +15,36 @@ if [ -n "$TAG" ]; then
   TAG="-$TAG"
 fi
 
-npm run package:windows:unpacked -w insomnia
+# this takes too long, try the other way around
+if [ ! $1 ]; then
+  echo "Building Insomnia electron application..."
+  npm run package:windows:unpacked -w insomnia
+fi
+
+# remove these and keep the build above
+# rm $DEST_DIR/Insomnia.exe
+# mv $DEST_DIR/Insomnia.dll $DEST_DIR/Insomnia.exe
 
 cp $DEST_DIR/Insomnia.exe $DEST_DIR/Insomnia.dll
 cp $SRC_DIR/icons/icon.ico $CPP_DIR/insomnia.ico
+
+echo "Injecting version strings..."
 sed "s/__MAJOR__/$MAJOR/g" $CPP_DIR/resources.rc > $CPP_DIR/final.rc
 sed -i "s/__MINOR__/$MINOR/g" $CPP_DIR/final.rc
 sed -i "s/__PATCH__/$PATCH/g" $CPP_DIR/final.rc
 sed -i "s/__TAG__/$TAG/g" $CPP_DIR/final.rc
 sed -i "s/__YEAR__/$(date +%Y)/g" $CPP_DIR/final.rc
+
+echo "Compiling resources..."
 windres $CPP_DIR/final.rc $CPP_DIR/res.o
+
+echo "Compiling Insomnia..."
 g++ -lkernel32 -mwindows -c $CPP_DIR/insomnia.cpp -o $CPP_DIR/insomnia.o
+
+echo "Linking Insomnia..."
 g++ -O2 -mwindows $CPP_DIR/insomnia.o $CPP_DIR/res.o -o $DEST_DIR/Insomnia.exe
+
+echo "Secure wapper built successfully."
+
+echo "Packaging distributables..."
+npm run package:windows:dist -w insomnia

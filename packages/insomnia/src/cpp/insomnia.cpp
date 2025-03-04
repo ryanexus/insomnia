@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <io.h>
+#include <string>
 #include <windows.h>
 
 const char *INSOMNIA_ISSUE_REPORT_PREFIX =
@@ -22,12 +23,10 @@ int ExitWithWarning(int cmdShow, const char *msg) {
   strcat_s(finalMsg, sizeof(finalMsg), INSOMNIA_ISSUE_REPORT_POSTFIX);
   int ret =
       ::MessageBox(NULL, finalMsg, "Insomnia was unable to start up properly",
-                   MB_YESNO | MB_ICONWARNING);
+                   MB_YESNO | MB_ICONERROR);
 
   if (ret == IDYES) {
     // Open the issue report URL in the default browser
-    // NOTE: ShellExecute is still vulnerable to the .dll hijacking attack
-    // (╯°□°）╯︵ ┻━┻
     ::ShellExecute(0, 0, INSOMNIA_ISSUE_URL, NULL, NULL, cmdShow);
   } else if (ret == IDNO) {
     // Do nothing, just exit
@@ -38,14 +37,30 @@ int ExitWithWarning(int cmdShow, const char *msg) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
+  HANDLE hDebugLog = ::CreateFile("C:\\Users\\ryan\\insomnia.log",
+                                  FILE_APPEND_DATA, FILE_SHARE_WRITE, NULL,
+                                  OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+  if (hDebugLog == INVALID_HANDLE_VALUE) {
+    return ::ExitWithWarning(nCmdShow, "Could not create debug log file.");
+  }
+  char insomniaExecutable[MAX_PATH];
+  ::GetModuleFileName(NULL, insomniaExecutable, sizeof(insomniaExecutable));
+
+  std::string currentPath(insomniaExecutable);
+  currentPath = currentPath.substr(0, currentPath.find_last_of("\\/"));
 
   // preserve the output from the original executable
   ::AttachConsole(-1);
+  ::WriteConsole(::GetStdHandle(STD_OUTPUT_HANDLE), "Insomnia is starting...\n",
+                 25, NULL, NULL);
+  ::WriteConsole(::GetStdHandle(STD_OUTPUT_HANDLE), lpCmdLine,
+                 strlen(lpCmdLine), NULL, NULL);
+  ::WriteConsole(::GetStdHandle(STD_OUTPUT_HANDLE), "\n", 1, NULL, NULL);
 
   ::PROCESS_MITIGATION_POLICY psp = ::ProcessSignaturePolicy;
   ::PROCESS_MITIGATION_POLICY pilp = ::ProcessImageLoadPolicy;
   ::PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY pmbsp;
-  ::PROCESS_MITIGATION_IMAGE_LOAD_POLICY pmil;
+  ::PROCESS_MITIGATION_IMAGE_LOAD_POLICY pmilp;
   ::PROCESS_INFORMATION pi;
   ::SECURITY_ATTRIBUTES sa;
   ::STARTUPINFO si;
@@ -53,22 +68,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   char insomniaOutputBuffer[__INSOMNIA_OUTPUT_BUFFER_SIZE];
 
   if (!::GetProcessMitigationPolicy(::GetCurrentProcess(), psp, &pmbsp,
-                                    sizeof(pmbsp)))
+                                    sizeof(pmbsp))) {
     return ::ExitWithWarning(nCmdShow, "Could not get ProcessImageLoadPolicy.");
+  }
 
   if (pmbsp.MitigationOptIn == 0) {
-    pmbsp.MitigationOptIn = 1;
-    if (!::SetProcessMitigationPolicy(psp, &pmbsp, sizeof(pmbsp)))
+    // pmbsp.MitigationOptIn = 1;
+    if (!::SetProcessMitigationPolicy(psp, &pmbsp, sizeof(pmbsp))) {
+      ::CloseHandle(hDebugLog);
       return ::ExitWithWarning(nCmdShow,
                                "Could not set ProcessImageLoadPolicy.");
+    }
   }
-  if (!::GetProcessMitigationPolicy(::GetCurrentProcess(), pilp, &pmil,
-                                    sizeof(pmil)))
+  if (!::GetProcessMitigationPolicy(::GetCurrentProcess(), pilp, &pmilp,
+                                    sizeof(pmilp))) {
+    ::CloseHandle(hDebugLog);
     return ::ExitWithWarning(nCmdShow, "Could not get ProcessImageLoadPolicy.");
+  }
 
-  if (pmil.PreferSystem32Images == 0) {
-    pmil.PreferSystem32Images = 1;
-    if (!::SetProcessMitigationPolicy(pilp, &pmil, sizeof(pmil))) {
+  if (pmilp.PreferSystem32Images == 0) {
+    pmilp.PreferSystem32Images = 1;
+    if (!::SetProcessMitigationPolicy(pilp, &pmilp, sizeof(pmilp))) {
+      ::CloseHandle(hDebugLog);
       return ::ExitWithWarning(nCmdShow,
                                "Could not set ProcessImageLoadPolicy.");
     }
@@ -83,22 +104,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   HANDLE outrd, outwr;
 
-  if (!::CreatePipe(&outrd, &outwr, &sa, 0))
+  if (!::CreatePipe(&outrd, &outwr, &sa, 0)) {
+    ::CloseHandle(hDebugLog);
     return ::ExitWithWarning(nCmdShow, "Could not create pipe.");
+  }
 
-  if (!::SetHandleInformation(outrd, HANDLE_FLAG_INHERIT, 0))
+  if (!::SetHandleInformation(outrd, HANDLE_FLAG_INHERIT, 0)) {
+    ::CloseHandle(hDebugLog);
+
     return ::ExitWithWarning(nCmdShow, "Could not set handle information.");
+  }
 
   si.cb = sizeof(si);
   si.dwFlags |= STARTF_USESTDHANDLES;
   si.hStdOutput = outwr;
   si.hStdError = outwr;
 
-  if (!::CreateProcess(NULL, (LPSTR) "Insomnia.dll", NULL, NULL, TRUE, 0, NULL,
-                       NULL, &si, &pi)) {
+  std::string try2(currentPath);
+  try2.append("\\Insomnia.dll");
+
+  int ret = ::CreateProcess(try2.c_str(), lpCmdLine, NULL, NULL, TRUE, 0, NULL,
+                            currentPath.c_str(), &si, &pi);
+
+  if (!ret) {
+    ::WriteFile(hDebugLog, "Could not create process.\n", 26, NULL, NULL);
+    ::WriteFile(hDebugLog, lpCmdLine, strlen(lpCmdLine), NULL, NULL);
+    ::WriteFile(hDebugLog, "\n", 1, NULL, NULL);
+    ::WriteFile(hDebugLog, insomniaExecutable, strlen(insomniaExecutable), NULL,
+                NULL);
+    ::WriteFile(hDebugLog, "\n", 1, NULL, NULL);
+    ::WriteFile(hDebugLog, currentPath.c_str(), currentPath.length(), NULL,
+                NULL);
+    ::WriteFile(hDebugLog, "\n", 1, NULL, NULL);
+    ::WriteFile(hDebugLog, "Closed at ", 10, NULL, NULL);
+    ::WriteFile(hDebugLog, __TIME__, strlen(__TIME__), NULL, NULL);
+    ::WriteFile(hDebugLog, "\n", 1, NULL, NULL);
+    ::CloseHandle(hDebugLog);
     ::CloseHandle(outrd);
     ::CloseHandle(outwr);
-    return ::ExitWithWarning(nCmdShow, "Could not Launch Insomnia.");
+    return ::ExitWithWarning(nCmdShow, "Unable to Launch Insomnia.");
   }
 
   // yes, close the write handle here, trust me
@@ -116,12 +160,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   // no more to read
   ::CloseHandle(outrd);
 
-  // wait for the process to finish (probably arlready done since the read handle is not readable)
+  // wait for the process to finish (probably arlready done since the read
+  // handle is not readable)
   ::WaitForSingleObject(pi.hProcess, INFINITE);
 
   // release the handles
   ::CloseHandle(pi.hProcess);
   ::CloseHandle(pi.hThread);
+  ::CloseHandle(hDebugLog);
 
   return 0;
 }

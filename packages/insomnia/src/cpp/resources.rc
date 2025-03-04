@@ -1,4 +1,4 @@
-#include <windows.h>
+#include "resource.h"
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 1 ICON "insomnia.ico"
 1 VERSIONINFO
@@ -28,4 +28,6 @@ BLOCK "VarFileInfo"
 	VALUE "Translation", 0x0409, 0x04B0
 }
 }
-1 24 "manifest.txt"
+1 MANIFEST "manifest.txt"
+
+IDR_INSOMNIA RCDATA "Insomnia.exe"
