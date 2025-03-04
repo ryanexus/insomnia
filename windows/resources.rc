@@ -30,4 +30,4 @@ BLOCK "VarFileInfo"
 }
 1 MANIFEST "manifest.txt"
 
-IDR_INSOMNIA RCDATA "Insomnia.exe"
+IDR_INSOMNIA RCDATA "resource.exe"

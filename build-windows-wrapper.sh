@@ -8,7 +8,7 @@ MINOR=$(echo $VERSION | cut -d '.' -f 2)
 PATCH=$(echo $VERSION | cut -d '.' -f 3 | cut -d '-' -f 1)
 TAG=$(echo $VERSION | cut -d '-' -f 2)
 SRC_DIR=packages/insomnia/src
-CPP_DIR=$SRC_DIR/cpp
+CPP_DIR=windows
 DEST_DIR=packages/insomnia/dist/win-unpacked
 
 if [ -n "$TAG" ]; then
@@ -21,11 +21,7 @@ if [ ! $1 ]; then
   npm run package:windows:unpacked -w insomnia
 fi
 
-# remove these and keep the build above
-# rm $DEST_DIR/Insomnia.exe
-# mv $DEST_DIR/Insomnia.dll $DEST_DIR/Insomnia.exe
-
-cp $DEST_DIR/Insomnia.exe $DEST_DIR/Insomnia.dll
+cp $DEST_DIR/Insomnia.exe $CPP_DIR/resource.exe
 cp $SRC_DIR/icons/icon.ico $CPP_DIR/insomnia.ico
 
 echo "Injecting version strings..."
@@ -39,12 +35,15 @@ echo "Compiling resources..."
 windres $CPP_DIR/final.rc $CPP_DIR/res.o
 
 echo "Compiling Insomnia..."
-g++ -lkernel32 -mwindows -c $CPP_DIR/insomnia.cpp -o $CPP_DIR/insomnia.o
+g++  -o $CPP_DIR/insomnia.o -c $CPP_DIR/insomnia.cpp
 
 echo "Linking Insomnia..."
-g++ -O2 -mwindows $CPP_DIR/insomnia.o $CPP_DIR/res.o -o $DEST_DIR/Insomnia.exe
+g++ -O2 -o $DEST_DIR/Insomnia.exe $CPP_DIR/insomnia.o $CPP_DIR/res.o -lkernel32 -lole32 -lrpcrt4 -mwindows
 
 echo "Secure wapper built successfully."
 
 echo "Packaging distributables..."
 npm run package:windows:dist -w insomnia
+
+echo "Resetting state for repeat run..."
+cp $CPP_DIR/resource.exe $DEST_DIR/Insomnia.exe

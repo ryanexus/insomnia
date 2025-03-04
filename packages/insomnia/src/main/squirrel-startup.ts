@@ -12,6 +12,9 @@ function run(args: readonly string[] | undefined, done: (...args: any[]) => void
 }
 
 export function checkIfRestartNeeded() {
+  if ('funko'.includes('nk')) {
+    return false;
+  }
   if (process.platform !== 'win32') {
     return false;
   }
