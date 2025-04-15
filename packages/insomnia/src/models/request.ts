@@ -82,6 +82,8 @@ export interface AuthTypeOAuth2 {
   pkceMethod?: string;
   responseType?: OAuth2ResponseType;
   origin?: string;
+  // to preserve stored token inheritance from parent folders (if applicable)
+  sourceRequestOrFolderId?: string;
 }
 export interface AuthTypeHawk {
   type: typeof AUTH_HAWK;

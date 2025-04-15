@@ -1,6 +1,6 @@
 import express, { urlencoded } from 'express';
 import type Provider from 'oidc-provider';
-
+import type { ClientAuthMethod, PKCEMethods, ResponseType } from 'oidc-provider';
 export const oauthRoutes = async (port: number) => {
   const clientIDAuthorizationCode = 'authorization_code';
   const clientIDAuthorizationCodePKCE = 'authorization_code_pkce';
@@ -12,7 +12,6 @@ export const oauthRoutes = async (port: number) => {
 
   const clientRedirectUri = `http://127.0.0.1:${port}/callback`;
 
-  /* eslint-disable camelcase */
   const oidcConfig = {
     interactions: {
       url: (_, interaction) => {
@@ -62,9 +61,9 @@ export const oauthRoutes = async (port: number) => {
         client_secret: clientSecret,
         redirect_uris: [clientRedirectUri],
 
-        token_endpoint_auth_method: 'none',
+        token_endpoint_auth_method: 'none' as ClientAuthMethod,
         grant_types: ['implicit'],
-        response_types: ['id_token', 'id_token token'],
+        response_types: ['id_token', 'id_token token'] as ResponseType[],
       },
       {
         client_id: clientIDClientCreds,
@@ -80,13 +79,13 @@ export const oauthRoutes = async (port: number) => {
       },
     ],
     pkce: {
-      methods: ['S256', 'plain'],
+      methods: ['S256', 'plain'] as PKCEMethods[],
       required: (_, client) => {
         // Require PKCE for the PKCE client id
         return client.clientId === clientIDAuthorizationCodePKCE;
       },
     },
-    responseTypes: ['code', 'id_token', 'id_token token', 'none'],
+    responseTypes: ['code', 'id_token', 'id_token token', 'none'] as ResponseType[],
     issueRefreshToken: () => {
       return false;
     },
@@ -118,7 +117,7 @@ export const oauthRoutes = async (port: number) => {
       return grant;
     },
   };
-  /* eslint-enable camelcase */
+
   const provider = (await import('oidc-provider')).default;
   const oidc = new provider(`http://127.0.0.1:${port}`, oidcConfig);
 
@@ -282,14 +281,12 @@ function registerROPC(oidc: Provider) {
 
       const accessToken = await at.save();
 
-      /* eslint-disable camelcase */
       ctx.body = {
         access_token: accessToken,
         expires_in: at.expiration,
         scope: at.scope,
         token_type: at.tokenType,
       };
-      /* eslint-enable camelcase */
 
       await next();
     },
