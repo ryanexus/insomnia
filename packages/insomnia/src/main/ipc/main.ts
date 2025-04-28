@@ -12,6 +12,7 @@ import { authorizeUserInWindow } from '../authorizeUserInWindow';
 import { backup, restoreBackup } from '../backup';
 import type { GitServiceAPI } from '../git-service';
 import installPlugin from '../install-plugin';
+import { generateMockServer, startMockServer, stopMockServer } from '../instant-mock-servers';
 import type { CurlBridgeAPI } from '../network/curl';
 import { cancelCurlRequest, curlRequest } from '../network/libcurl-promise';
 import {
@@ -37,6 +38,12 @@ export interface RendererToMainBridgeAPI {
   backup: () => Promise<void>;
   restoreBackup: (version: string) => Promise<void>;
   authorizeUserInWindow: typeof authorizeUserInWindow;
+
+  // new mock server things
+  startMockServer: (options: { id: string; workspaceId: string }) => Promise<string>;
+  stopMockServer: (options: { id: string }) => Promise<boolean>;
+  generateMockServer: (options: { id: string; workspaceId: string }) => Promise<boolean>;
+
   setMenuBarVisibility: (visible: boolean) => void;
   installPlugin: typeof installPlugin;
   writeFile: (options: { path: string; content: string }) => Promise<string>;
@@ -104,6 +111,18 @@ export function registerMainHandlers() {
   ipcMainHandle('authorizeUserInWindow', (_, options: Parameters<typeof authorizeUserInWindow>[0]) => {
     const { url, urlSuccessRegex, urlFailureRegex, sessionId } = options;
     return authorizeUserInWindow({ url, urlSuccessRegex, urlFailureRegex, sessionId });
+  });
+
+  ipcMainHandle('startMockServer', async (_, options: { id: string; workspaceId: string }) => {
+    return startMockServer(options);
+  });
+  ipcMainHandle('stopMockServer', (_, options: { id: string }) => {
+    return stopMockServer(options);
+  });
+  ipcMainHandle('generateMockServer', async (_, options: { id: string; workspaceId: string }) => {
+    const generated = await generateMockServer(options);
+    console.log(`[mock] Generated mock server file for server ${options.id}: ${generated}`);
+    return generated;
   });
 
   ipcMainHandle('writeFile', async (_, options: { path: string; content: string }) => {

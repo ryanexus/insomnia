@@ -104,6 +104,10 @@ const main: Window['main'] = {
   backup: () => ipcRenderer.invoke('backup'),
   restoreBackup: options => ipcRenderer.invoke('restoreBackup', options),
   authorizeUserInWindow: options => ipcRenderer.invoke('authorizeUserInWindow', options),
+  // new mock server things
+  startMockServer: options => ipcRenderer.invoke('startMockServer', options),
+  stopMockServer: options => ipcRenderer.invoke('stopMockServer', options),
+  generateMockServer: options => ipcRenderer.invoke('generateMockServer', options),
   setMenuBarVisibility: options => ipcRenderer.send('setMenuBarVisibility', options),
   installPlugin: options => ipcRenderer.invoke('installPlugin', options),
   curlRequest: options => ipcRenderer.invoke('curlRequest', options),

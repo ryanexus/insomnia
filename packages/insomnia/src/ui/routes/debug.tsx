@@ -769,7 +769,14 @@ export const Debug: FC = () => {
       className="new-sidebar h-full w-full text-[--color-font]"
       direction="horizontal"
     >
-      <Panel id="sidebar" className="sidebar theme--sidebar" maxSize={40} minSize={10} collapsible>
+      <Panel
+        id="sidebar"
+        className="sidebar theme--sidebar"
+        maxSize={40}
+        minSize={10}
+        style={{ minWidth: '275px' }}
+        // collapsible
+      >
         <div className="flex flex-1 flex-col divide-y divide-solid divide-[--hl-md] overflow-hidden">
           <div className="flex flex-col items-start divide-y divide-solid divide-[--hl-md]">
             <div className={`flex w-full h-[${INSOMNIA_TAB_HEIGHT}px]`}>
@@ -799,9 +806,7 @@ export const Debug: FC = () => {
                 </Breadcrumb>
               </Breadcrumbs>
             </div>
-            {isDesign(activeWorkspace) && (
-              <DocumentTab organizationId={organizationId} projectId={projectId} workspaceId={workspaceId} />
-            )}
+            {isDesign(activeWorkspace) && <DocumentTab {...{ organizationId, projectId, workspaceId }} />}
             <div className="flex w-full flex-col items-start gap-2 p-[--padding-sm]">
               <div className="flex w-full items-center justify-between gap-2">
                 <EnvironmentPicker

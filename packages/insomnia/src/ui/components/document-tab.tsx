@@ -15,6 +15,7 @@ export const DocumentTab = ({ organizationId, projectId, workspaceId, className 
       {[
         { id: 'spec', name: 'Spec' },
         { id: 'debug', name: 'Collection' },
+        { id: 'spec-mock', name: 'InstaMock' },
         { id: 'test', name: 'Tests' },
       ].map(item => (
         <NavLink

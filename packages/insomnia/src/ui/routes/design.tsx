@@ -440,7 +440,8 @@ const Design: FC = () => {
         defaultSize={DEFAULT_SIDEBAR_SIZE}
         maxSize={40}
         minSize={10}
-        collapsible
+        style={{ minWidth: '275px' }}
+        // collapsible
       >
         <div className="flex h-full flex-col divide-y divide-solid divide-[--hl-md] overflow-hidden">
           <Breadcrumbs
@@ -909,7 +910,7 @@ const Design: FC = () => {
       <Panel className="flex flex-col">
         <OrganizationTabList />
         <PanelGroup autoSaveId="insomnia-panels" direction={direction}>
-          <Panel id="pane-one" minSize={10} className="pane-one theme--pane">
+          <Panel id="pane-one" order={1} minSize={10} className="pane-one theme--pane">
             <div className="flex h-full w-full flex-col divide-y divide-solid divide-[--hl-md] overflow-hidden">
               <div className="relative flex flex-1 flex-shrink-0 basis-1/2 overflow-hidden">
                 <CodeEditor
@@ -918,7 +919,7 @@ const Design: FC = () => {
                   showPrettifyButton
                   ref={editor}
                   lintOptions={lintOptions}
-                  mode="openapi"
+                  mode="yaml"
                   defaultValue={apiSpec.contents || ''}
                   onChange={onCodeEditorChange}
                   uniquenessKey={uniquenessKey}
@@ -1031,7 +1032,7 @@ const Design: FC = () => {
               <PanelResizeHandle
                 className={direction === 'horizontal' ? 'h-full w-[1px] bg-[--hl-md]' : 'h-[1px] w-full bg-[--hl-md]'}
               />
-              <Panel id="pane-two" minSize={10} className="pane-two theme--pane">
+              <Panel id="pane-two" order={2} minSize={10} className="pane-two theme--pane">
                 <SwaggerUIDiv text={apiSpec.contents} />
               </Panel>
             </>

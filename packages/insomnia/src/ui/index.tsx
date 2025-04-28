@@ -38,6 +38,7 @@ const Project = lazy(() => import('./routes/project'));
 const Workspace = lazy(() => import('./routes/workspace'));
 const UnitTest = lazy(() => import('./routes/unit-test'));
 const Debug = lazy(() => import('./routes/debug'));
+const Decode = lazy(() => import('./routes/decode'));
 const Design = lazy(() => import('./routes/design'));
 const MockServer = lazy(() => import('./routes/mock-server'));
 const Environments = lazy(() => import('./routes/environments'));
@@ -488,6 +489,7 @@ async function renderApp() {
                               </Suspense>
                             ),
                             children: [
+                              // Debug
                               {
                                 path: `${ACTIVITY_DEBUG}/*`,
                                 loader: async (...args) => (await import('./routes/debug')).loader(...args),
@@ -608,6 +610,7 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // Spec
                               {
                                 path: `${ACTIVITY_SPEC}`,
                                 loader: async (...args) => (await import('./routes/design')).loader(...args),
@@ -629,6 +632,16 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // InstaMock
+                              {
+                                path: 'spec-mock',
+                                element: (
+                                  <Suspense fallback={<AppLoadingIndicator />}>
+                                    <Decode />
+                                  </Suspense>
+                                ),
+                              },
+                              // Mock Server
                               {
                                 path: 'mock-server/*',
                                 id: 'mock-server',
@@ -674,6 +687,7 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // Environment
                               {
                                 path: 'environment',
                                 element: (
@@ -681,49 +695,6 @@ async function renderApp() {
                                     <Environments />
                                   </Suspense>
                                 ),
-                              },
-                              {
-                                path: 'cacert',
-                                children: [
-                                  {
-                                    path: 'new',
-                                    action: async (...args) =>
-                                      (await import('./routes/actions')).createNewCaCertificateAction(...args),
-                                  },
-                                  {
-                                    path: 'update',
-                                    action: async (...args) =>
-                                      (await import('./routes/actions')).updateCaCertificateAction(...args),
-                                  },
-                                  {
-                                    path: 'delete',
-                                    action: async (...args) =>
-                                      (await import('./routes/actions')).deleteCaCertificateAction(...args),
-                                  },
-                                ],
-                              },
-                              {
-                                path: 'clientcert',
-                                children: [
-                                  {
-                                    path: 'new',
-                                    action: async (...args) =>
-                                      (await import('./routes/actions')).createNewClientCertificateAction(...args),
-                                  },
-                                  {
-                                    path: 'update',
-                                    action: async (...args) =>
-                                      (await import('./routes/actions')).updateClientCertificateAction(...args),
-                                  },
-                                  {
-                                    path: 'delete',
-                                    action: async (...args) =>
-                                      (await import('./routes/actions')).deleteClientCertificateAction(...args),
-                                  },
-                                ],
-                              },
-                              {
-                                path: 'environment',
                                 children: [
                                   {
                                     path: 'update',
@@ -757,6 +728,49 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // CA Certificate
+                              {
+                                path: 'cacert',
+                                children: [
+                                  {
+                                    path: 'new',
+                                    action: async (...args) =>
+                                      (await import('./routes/actions')).createNewCaCertificateAction(...args),
+                                  },
+                                  {
+                                    path: 'update',
+                                    action: async (...args) =>
+                                      (await import('./routes/actions')).updateCaCertificateAction(...args),
+                                  },
+                                  {
+                                    path: 'delete',
+                                    action: async (...args) =>
+                                      (await import('./routes/actions')).deleteCaCertificateAction(...args),
+                                  },
+                                ],
+                              },
+                              // Client Certificate
+                              {
+                                path: 'clientcert',
+                                children: [
+                                  {
+                                    path: 'new',
+                                    action: async (...args) =>
+                                      (await import('./routes/actions')).createNewClientCertificateAction(...args),
+                                  },
+                                  {
+                                    path: 'update',
+                                    action: async (...args) =>
+                                      (await import('./routes/actions')).updateClientCertificateAction(...args),
+                                  },
+                                  {
+                                    path: 'delete',
+                                    action: async (...args) =>
+                                      (await import('./routes/actions')).deleteClientCertificateAction(...args),
+                                  },
+                                ],
+                              },
+                              // Cookie Jar
                               {
                                 path: 'cookieJar',
                                 children: [
@@ -767,6 +781,7 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // Tests
                               {
                                 path: 'test/*',
                                 loader: async (...args) => (await import('./routes/unit-test')).loader(...args),
@@ -871,6 +886,7 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // AI
                               {
                                 path: 'ai',
                                 children: [
@@ -891,11 +907,13 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // Duplication
                               {
                                 path: 'duplicate',
                                 action: async (...args) =>
                                   (await import('./routes/actions')).duplicateWorkspaceAction(...args),
                               },
+                              // Git
                               {
                                 path: 'git',
                                 children: [
@@ -996,6 +1014,7 @@ async function renderApp() {
                                   },
                                 ],
                               },
+                              // Insomnia Sync
                               {
                                 path: 'insomnia-sync',
                                 children: [
