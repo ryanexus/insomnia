@@ -36,6 +36,7 @@ import { useDocBodyKeyboardShortcuts } from '../components/keydown-binder';
 import { showModal, showPrompt } from '../components/modals';
 import { AlertModal } from '../components/modals/alert-modal';
 import { AskModal } from '../components/modals/ask-modal';
+import { MockRouteModal } from '../components/modals/mock-route-modal';
 import { EmptyStatePane } from '../components/panes/empty-state-pane';
 import { SvgIcon } from '../components/svg-icon';
 import { OrganizationTabList } from '../components/tabs/tab-list';
@@ -251,21 +252,17 @@ const MockServerRoute = () => {
             <Button
               className="flex items-center justify-center gap-2 rounded-sm px-4 py-1 text-sm text-[--color-font] ring-1 ring-transparent transition-all hover:bg-[--hl-xs] focus:ring-inset focus:ring-[--hl-md] aria-pressed:bg-[--hl-sm]"
               onPress={() => {
-                showPrompt({
-                  title: 'New mock route',
-                  defaultValue: '/',
-                  submitName: 'Create',
-                  placeholder: '/path/to/resource',
-                  onComplete: name => {
-                    const hasRouteInServer = mockRoutes.find(m => m.name === name && m.method.toUpperCase() === 'GET');
+                showModal(MockRouteModal, {
+                  onComplete: (method, path) => {
+                    const hasRouteInServer = mockRoutes.find(m => m.name === path && m.method.toUpperCase() === method);
                     if (hasRouteInServer) {
                       showModal(AlertModal, {
                         title: 'Error',
-                        message: `Path "${name}" and must be unique. Please enter a different name.`,
+                        message: `Path "${path}" and method must be unique. Please enter a different name.`,
                       });
                       return;
                     }
-                    if (name[0] !== '/') {
+                    if (path[0] !== '/') {
                       showModal(AlertModal, {
                         title: 'Error',
                         message: 'Path must begin with a /',
@@ -274,7 +271,8 @@ const MockServerRoute = () => {
                     }
                     fetcher.submit(
                       {
-                        name,
+                        name: path,
+                        method,
                         parentId: mockServerId,
                       },
                       {
