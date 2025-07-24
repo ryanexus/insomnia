@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from 'react-aria-components';
+import { Button, Input } from 'react-aria-components';
 import { useFetcher } from 'react-router';
 
 import type { GitCredentials } from '../../../models/git-credentials';
@@ -10,10 +10,11 @@ import { GitHubRepositorySelect } from './github-repository-select';
 interface Props {
   uri?: string;
   onSubmit: (args: Partial<GitRepository>) => void;
+  isEnterprise?: boolean;
 }
 
 export const GitHubRepositorySetupFormGroup = (props: Props) => {
-  const { onSubmit, uri } = props;
+  const { onSubmit, uri, isEnterprise } = props;
   const githubTokenLoader = useFetcher<GitCredentials>();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export const GitHubRepositorySetupFormGroup = (props: Props) => {
     return <GitHubSignInForm />;
   }
 
-  return <GitHubRepositoryForm uri={uri} onSubmit={onSubmit} credentials={credentials} />;
+  return <GitHubRepositoryForm uri={uri} onSubmit={onSubmit} credentials={credentials} isEnterprise={isEnterprise} />;
 };
 
 const Avatar = ({ src }: { src: string }) => {
@@ -56,16 +57,21 @@ const Avatar = ({ src }: { src: string }) => {
     };
   }, [src]);
 
-  return imageSrc ? <img src={imageSrc} className="h-10 w-10 rounded-full" /> : <i className="fas fa-user-circle" />;
+  return imageSrc ? (
+    <img alt="GitHub user avatar" src={imageSrc} className="h-10 w-10 rounded-full" />
+  ) : (
+    <i className="fas fa-user-circle" />
+  );
 };
 
 interface GitHubRepositoryFormProps {
   uri?: string;
   onSubmit: (args: Partial<GitRepository & { ref?: string }>) => void;
   credentials: GitCredentials;
+  isEnterprise?: boolean;
 }
 
-const GitHubRepositoryForm = ({ uri, credentials, onSubmit }: GitHubRepositoryFormProps) => {
+const GitHubRepositoryForm = ({ uri, credentials, onSubmit, isEnterprise }: GitHubRepositoryFormProps) => {
   const [error, setError] = useState('');
   const signOutFetcher = useFetcher();
 
@@ -94,6 +100,28 @@ const GitHubRepositoryForm = ({ uri, credentials, onSubmit }: GitHubRepositoryFo
         });
       }}
     >
+      {isEnterprise && (
+        <div className="flex flex-col items-start gap-2 rounded-lg border border-solid border-[--hl-sm] p-3">
+          <div className="flex items-start gap-3">
+            <i className="fa fa-github mt-1" /> Server Hostname
+          </div>
+          <div className="flex w-full items-start gap-2">
+            <Input
+              className="w-full rounded-sm border border-solid border-[--hl-sm] px-3 py-1 placeholder:text-[--hl]"
+              type="text"
+              placeholder="ex. your-org.ghes.com"
+              name="enterprise-url"
+            />
+            <Button
+              type="button"
+              className="flex h-full w-[10ch] items-center justify-center gap-2 rounded-md border border-solid border-[--hl-md] bg-[rgba(var(--color-surprise-rgb),var(--tw-bg-opacity))] bg-opacity-100 px-4 py-[3.8px] text-sm font-semibold text-[--color-font-surprise] ring-1 ring-transparent transition-all hover:bg-opacity-80 focus:ring-inset focus:ring-[--hl-md] aria-pressed:opacity-80"
+            >
+              Set up
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between rounded-sm border border-solid border-[--hl-sm] px-3 py-1">
         <div className="flex items-center gap-3">
           <Avatar src={credentials.author.avatarUrl ?? ''} />
@@ -114,7 +142,7 @@ const GitHubRepositoryForm = ({ uri, credentials, onSubmit }: GitHubRepositoryFo
       <GitHubRepositorySelect uri={uri} token={credentials.token} />
       {error && (
         <p className="notice error margin-bottom-sm">
-          <button className="pull-right icon" onClick={() => setError('')}>
+          <button type="button" className="pull-right icon" onClick={() => setError('')}>
             <i className="fa fa-times" />
           </button>
           {error}

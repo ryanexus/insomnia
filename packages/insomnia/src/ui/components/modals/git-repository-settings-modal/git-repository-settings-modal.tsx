@@ -121,6 +121,14 @@ export const GitRepositorySettingsModal = ({
                 </Tab>
                 <Tab
                   className="flex h-full flex-shrink-0 cursor-pointer select-none items-center justify-between gap-2 px-3 py-1 text-[--hl] outline-none transition-colors duration-300 hover:bg-[--hl-sm] hover:text-[--color-font] focus:bg-[--hl-sm] aria-selected:bg-[--hl-xs] aria-selected:text-[--color-font] aria-selected:hover:bg-[--hl-sm] aria-selected:focus:bg-[--hl-sm]"
+                  id="github"
+                >
+                  <div className="flex items-center gap-2">
+                    <i className="fa fa-github" /> GitHub Enterprise Server
+                  </div>
+                </Tab>
+                <Tab
+                  className="flex h-full flex-shrink-0 cursor-pointer select-none items-center justify-between gap-2 px-3 py-1 text-[--hl] outline-none transition-colors duration-300 hover:bg-[--hl-sm] hover:text-[--color-font] focus:bg-[--hl-sm] aria-selected:bg-[--hl-xs] aria-selected:text-[--color-font] aria-selected:hover:bg-[--hl-sm] aria-selected:focus:bg-[--hl-sm]"
                   id="gitlab"
                 >
                   <div className="flex items-center gap-2">

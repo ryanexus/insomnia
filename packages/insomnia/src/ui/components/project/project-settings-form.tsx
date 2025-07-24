@@ -341,6 +341,14 @@ export const ProjectSettingsForm: FC<Props> = ({
                 </Tab>
                 <Tab
                   className="flex h-full flex-shrink-0 cursor-pointer select-none items-center justify-between gap-2 px-3 py-1 text-[--hl] outline-none transition-colors duration-300 hover:bg-[--hl-sm] hover:text-[--color-font] focus:bg-[--hl-sm] aria-selected:bg-[--hl-xs] aria-selected:text-[--color-font] aria-selected:hover:bg-[--hl-sm] aria-selected:focus:bg-[--hl-sm]"
+                  id="github-enterprise"
+                >
+                  <div className="flex items-center gap-2">
+                    <i className="fa fa-github" /> GitHub Enterprise Server
+                  </div>
+                </Tab>
+                <Tab
+                  className="flex h-full flex-shrink-0 cursor-pointer select-none items-center justify-between gap-2 px-3 py-1 text-[--hl] outline-none transition-colors duration-300 hover:bg-[--hl-sm] hover:text-[--color-font] focus:bg-[--hl-sm] aria-selected:bg-[--hl-xs] aria-selected:text-[--color-font] aria-selected:hover:bg-[--hl-sm] aria-selected:focus:bg-[--hl-sm]"
                   id="gitlab"
                 >
                   <div className="flex items-center gap-2">
@@ -358,6 +366,9 @@ export const ProjectSettingsForm: FC<Props> = ({
               </TabList>
               <TabPanel className="h-full w-full overflow-y-auto py-2" id="github">
                 <GitHubRepositorySetupFormGroup onSubmit={onGitRepoFormSubmit} />
+              </TabPanel>
+              <TabPanel className="h-full w-full overflow-y-auto py-2" id="github-enterprise">
+                <GitHubRepositorySetupFormGroup onSubmit={onGitRepoFormSubmit} isEnterprise={true} />
               </TabPanel>
               <TabPanel className="h-full w-full overflow-y-auto py-2" id="gitlab">
                 <GitLabRepositorySetupFormGroup onSubmit={onGitRepoFormSubmit} />
