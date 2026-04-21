@@ -25,6 +25,22 @@ export async function clientLoader(_args: Route.ClientLoaderArgs) {
     const personalOrganizationId = personalOrganization.id;
     await migrateProjectsUnderOrganization(personalOrganizationId, sessionId);
 
+    // Drain any deep-link queued before login (e.g. insomnia://app/import clicked
+    // while signed out) and replay it after this loader's redirect lands, so the
+    // user ends up inside their org before the import modal opens.
+    const pendingDeepLink = window.sessionStorage.getItem('pendingDeepLinkAfterAuthorize');
+    if (pendingDeepLink) {
+      window.sessionStorage.removeItem('pendingDeepLinkAfterAuthorize');
+      try {
+        const { url } = JSON.parse(pendingDeepLink) as { state: string; url: string };
+        if (url) {
+          setTimeout(() => window.main.openDeepLink(url), 0);
+        }
+      } catch {
+        // stale/corrupt entry — silently drop
+      }
+    }
+
     const specificOrgRedirectAfterAuthorize = window.localStorage.getItem('specificOrgRedirectAfterAuthorize');
     if (specificOrgRedirectAfterAuthorize && specificOrgRedirectAfterAuthorize !== '') {
       window.localStorage.removeItem('specificOrgRedirectAfterAuthorize');

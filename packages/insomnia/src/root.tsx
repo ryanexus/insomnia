@@ -42,7 +42,7 @@ import { AlertModal } from '~/ui/components/modals/alert-modal';
 import { AskModal } from '~/ui/components/modals/ask-modal';
 import { ImportModal, type ImportSource, validateCurl } from '~/ui/components/modals/import-modal/import-modal';
 import { SettingsModal } from '~/ui/components/modals/settings-modal';
-import { Toaster } from '~/ui/components/toast-notification';
+import { showToast, Toaster } from '~/ui/components/toast-notification';
 import { AppHooks } from '~/ui/containers/app-hooks';
 import cssHref from '~/ui/css/styles.css?url';
 import Modals from '~/ui/modals';
@@ -352,6 +352,21 @@ const Root = () => {
       }
       // Supports params: uri, curl, origin
       if (urlWithoutParams === 'insomnia://app/import') {
+        const userSession = await services.userSession.getOrCreate();
+        if (!userSession.id) {
+          const state = crypto.randomUUID();
+          window.sessionStorage.setItem(
+            'pendingDeepLinkAfterAuthorize',
+            JSON.stringify({ state, url }),
+          );
+          showToast({
+            icon: 'right-to-bracket',
+            title: 'Sign in required',
+            description: 'Please log in to import this resource.',
+            status: 'info',
+          });
+          return navigate(href('/auth/login'));
+        }
         window.main.trackSegmentEvent({
           event: SegmentEvent.importStarted,
           properties: {
