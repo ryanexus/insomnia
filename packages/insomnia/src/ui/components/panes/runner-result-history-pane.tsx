@@ -38,6 +38,10 @@ export const RunnerResultHistoryPane: FC<Props> = ({
 
     for (const iteration of runnerResult.iterationResults) {
       for (const requests of iteration) {
+        if (requests.skipped) {
+          skippedCount++;
+          continue;
+        }
         for (const testCase of requests.results) {
           if (testCase.status === 'failed') {
             failedCount++;
