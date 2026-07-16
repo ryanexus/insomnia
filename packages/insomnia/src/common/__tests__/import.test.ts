@@ -748,7 +748,7 @@ describe('MCP run deep-link import', () => {
     expect((requests[0] as McpRequest).url).toBe(mcpUrl);
   });
 
-  it('findExistingImportedMcp returns the MCP client with the same URL', async () => {
+  it('findExistingImportedWorkspace returns the MCP client with the same URL', async () => {
     const project = await services.project.create();
     await importUtil.scanResources([{ contentStr: mcpUrlToInsomniaV5Yaml(mcpUrl), oriFileName: 'mcp' }]);
     const [workspace] = await importUtil.importResourcesToProject({ projectId: project._id });
@@ -756,14 +756,14 @@ describe('MCP run deep-link import', () => {
     expect(existingRequest?.url).toBe(mcpUrl);
 
     await importUtil.scanResources([{ contentStr: mcpUrlToInsomniaV5Yaml(mcpUrl), oriFileName: 'mcp' }]);
-    const match = await importUtil.findExistingImportedMcp(project._id);
+    const match = await importUtil.findExistingImportedWorkspace(project._id);
     expect(match).toEqual({
       workspace: expect.objectContaining({ _id: workspace._id, scope: 'mcp' }),
-      mcpRequest: expect.objectContaining({ _id: existingRequest?._id, url: mcpUrl }),
+      model: expect.objectContaining({ _id: existingRequest?._id, url: mcpUrl }),
     });
   });
 
-  it('findExistingImportedMcp returns undefined for a different MCP URL', async () => {
+  it('findExistingImportedWorkspace returns undefined for a different MCP URL', async () => {
     const project = await services.project.create();
     await importUtil.scanResources([{ contentStr: mcpUrlToInsomniaV5Yaml(mcpUrl), oriFileName: 'mcp' }]);
     await importUtil.importResourcesToProject({ projectId: project._id });
@@ -771,7 +771,7 @@ describe('MCP run deep-link import', () => {
     await importUtil.scanResources([
       { contentStr: mcpUrlToInsomniaV5Yaml('https://mcp.example.com/other'), oriFileName: 'mcp' },
     ]);
-    const match = await importUtil.findExistingImportedMcp(project._id);
+    const match = await importUtil.findExistingImportedWorkspace(project._id);
     expect(match).toBeUndefined();
   });
 });
